@@ -1,0 +1,92 @@
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+    </head>
+    <body>
+        <div id="dateFrom"></div>
+        <div id="dateTo"></div>
+        <div id="dateResult"></div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <script src ="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+        <script type="text/javascript">
+          $(document).ready(function(){
+            var json = null;
+
+            var dtFrom = $("#dateFrom").datepicker({
+              dateFormat: 'yy-dd-mm',
+              changeYear: true,
+              onSelect: function(dateText){
+                if(dateText > dtTo.val()){
+                  dtTo.datepicker("setDate",dateText);
+                }
+                cercaPerDates(dateText, dtTo.val());
+              }
+            });
+            var dtTo = $("#dateTo").datepicker({
+              dateFormat: 'yy-dd-mm',
+              changeYear: true,
+              onSelect: function(dateText){
+                if(dateText < dtFrom.val()){
+                  dtFrom.datepicker("setDate",dateText);
+                }
+                cercaPerDates(dateText, dtFrom.val());
+              }
+            });
+
+            $.ajax({
+              url: "https://liorna.cat/inv_materials.json",
+              complete: function(resp){
+                json = JSON.parse(resp.responseText);
+              }
+            });
+
+            function cercaPerDates(from, to){
+              $("#dateResult").html("");
+              //Date From procesament
+              fromSplit = from.split("-");
+              var fromYear = fromSplit[0];
+              var fromDay = fromSplit[1];
+              var fromMonth = fromSplit[2];
+              //Date to process
+              toSplit = to.split("-");
+              var toYear = toSplit[0];
+              var toDay = toSplit[1];
+              var toMonth = toSplit[2];
+
+              //Create Dates
+              var dateIni = new Date(fromYear,fromDay,fromMonth,0,0,0,0);
+              var dateFi = new Date(toYear,toDay,toMonth,0,0,0,0);
+
+              for (var i = 0; i < json.length; i++) {
+                if(json != null){
+                  //Get info from JSON
+                  var department = json[i].departament;
+                  var descripcion = json[i].descripcio;
+                  var dAlta = json[i].data_alta;
+
+                  dAltaSplit = to.split("-");
+                  var dAltaYear = dAltaSplit[0];
+                  var dAltaDay = dAltaSplit[1];
+                  var dAltaMonth = dAltaSplit[2];
+
+                  var dateAlta = new Date(dAltaYear,dAltaDay,dAltaMonth,0,0,0,0);
+
+                  //alert("date ini: "+ dateIni+" dateFi"+ dateFi+" ALTA "+ dateAlta);
+                  if(dateAlta >= dateIni && dateAlta <= dateFi){
+                    $("#dateResult").append(department+" --> "+descripcion+" -> "+ dAlta+"<br>");
+                  }
+                }else{
+                  setTimeout(function(){
+                    cercaPerDates(from,to);
+                  },1000);
+                }
+              }
+            }
+          });
+        </script>
+    </body>
+</html>
